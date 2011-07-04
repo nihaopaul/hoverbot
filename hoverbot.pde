@@ -1,3 +1,6 @@
+#include <AikoEvents.h>
+using namespace Aiko;
+
 // motor forward/reverse
 int dir1PinA = 13;
 int dir2PinA = 12;
@@ -14,6 +17,7 @@ int rpin = 2;
 // ultrasonic sensors ping array..
 // gets them all going and free's up a port
 int trigger_pin = 3;
+int center_trig_pin = 7;
 // ultrasonic sensor reply
 int echoL = 4;
 int echoC = 5;
@@ -30,24 +34,24 @@ void setup() {
   pinMode(rpin, OUTPUT);
   //ping send
   pinMode(trigger_pin, OUTPUT);
+  pinMode(center_trig_pin, OUTPUT);
   //echo receive
   pinMode(echoL, INPUT);
   pinMode(echoC, INPUT);
   pinMode(echoR, INPUT);
+  //
+  Events.addHandler(distance, 500);
   //
   Serial.begin(115200);
 
 }
 
 void loop() {
-  int dis;
   //
   fwd_drive();
   Lift();
 
-  dis = get_distance();
-
-
+  Events.loop();
 }
 /*
 lets slam this baby into high speed forward.
@@ -78,7 +82,7 @@ void AirBreak() {
 
 /* got this from the bug bot by david */
 
-int get_distance()
+void distance()
 {
   // establish variables for duration of the ping,
   // and the distance result in inches and centimeters:
@@ -88,18 +92,21 @@ int get_distance()
   // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
 
   digitalWrite(trigger_pin, LOW);
+  digitalWrite(center_trig_pin, LOW);
   delayMicroseconds(2);
   digitalWrite(trigger_pin, HIGH);
+  digitalWrite(center_trig_pin, HIGH);
   delayMicroseconds(5);
   digitalWrite(trigger_pin, LOW);
+  digitalWrite(center_trig_pin, LOW);
 
   // The same pin is used to read the signal from the PING))): a HIGH
   // pulse whose duration is the time (in microseconds) from the sending
   // of the ping to the reception of its echo off of an object.
   
-  left = pulseIn(echoL, HIGH);
-  center = pulseIn(echoC, HIGH);
-  right = pulseIn(echoR, HIGH);
+  left = microsecondsToCentimeters(pulseIn(echoL, HIGH));
+ // center = microsecondsToCentimeters(pulseIn(echoC, HIGH));
+  right = microsecondsToCentimeters(pulseIn(echoR, HIGH));
 
 //
   Serial.print("LEFT: \t" );
@@ -108,12 +115,9 @@ int get_distance()
   Serial.print(center, DEC);
   Serial.print("\t Right: \t");
   Serial.println(right,DEC);
-//  Serial.println(left, DEC);
-//    Serial.println(center, DEC);
-//      Serial.println(right, DEC);
-//
+
   // convert the time into a distance
-  return microsecondsToCentimeters(center);
+ // return microsecondsToCentimeters(center);
 }
 
 
