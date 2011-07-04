@@ -1,5 +1,3 @@
-#include <AikoEvents.h>
-using namespace Aiko;
 
 // motor forward/reverse
 int dir1PinA = 13;
@@ -17,11 +15,14 @@ int rpin = 2;
 // ultrasonic sensors ping array..
 // gets them all going and free's up a port
 int trigger_pin = 3;
-int center_trig_pin = 7;
+
 // ultrasonic sensor reply
 int echoL = 4;
 int echoC = 5;
 int echoR = 6;
+
+//store variables
+long left, center, right;
 
 
 void setup() {
@@ -31,28 +32,31 @@ void setup() {
   pinMode(dir1PinB, OUTPUT);
   pinMode(dir2PinB, OUTPUT);
   pinMode(powerB, OUTPUT);
+  //lift
   pinMode(rpin, OUTPUT);
+  //make sure it's off to begin with
+  digitalWrite(rpin, HIGH); 
   //ping send
   pinMode(trigger_pin, OUTPUT);
-  pinMode(center_trig_pin, OUTPUT);
   //echo receive
   pinMode(echoL, INPUT);
   pinMode(echoC, INPUT);
   pinMode(echoR, INPUT);
   //
-  Events.addHandler(distance, 500);
-  //
-  Serial.begin(115200);
-
+  Serial.begin(9600);
 }
 
 void loop() {
+  //first lets populate all the distance sensors
+  distance();
   //
-  fwd_drive();
-  Lift();
-
-  Events.loop();
+  delay(1000);
+  turnRight();
 }
+
+
+
+
 /*
 lets slam this baby into high speed forward.
 */
@@ -69,6 +73,19 @@ void rev_drive() {
     digitalWrite(dir1PinA, HIGH);
     digitalWrite(dir2PinA, LOW);
 }
+/* left/right */
+void turnLeft() {
+    analogWrite(powerB, 255);
+    digitalWrite(dir1PinB, LOW);
+    digitalWrite(dir2PinB, HIGH);
+}
+
+void turnRight() {
+    analogWrite(powerB, 255);
+    digitalWrite(dir1PinB, HIGH);
+    digitalWrite(dir2PinB, LOW);
+}
+
 
 void Lift() {
     digitalWrite(rpin, LOW);
@@ -78,36 +95,46 @@ void AirBreak() {
 }
 
 
+/*                   *
+ * *                   *
+ * * * ultrasonic stuff  *
+ * *                   *
+ *                   */
+void ping() 
+{
+  digitalWrite(trigger_pin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigger_pin, HIGH);
+  delay(5);
+  digitalWrite(trigger_pin, LOW);
+}
 
+void leftdistance()
+{
+  delay(10);
+  ping();
+  left = microsecondsToCentimeters(pulseIn(echoL, HIGH,2000));
 
+}
+void centerdistance()
+{
+  delay(10);
+  ping();
+ center = microsecondsToCentimeters(pulseIn(echoC, HIGH,2000));
+}
+void rightdistance()
+{
+  delay(10);
+  ping();
+  right = microsecondsToCentimeters(pulseIn(echoR, HIGH, 2000));
+}
 /* got this from the bug bot by david */
 
 void distance()
 {
-  // establish variables for duration of the ping,
-  // and the distance result in inches and centimeters:
-  long left, right, center, inches, cm;
-
-  // The PING))) is trigger_pined by a HIGH pulse of 2 or more microseconds.
-  // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
-
-  digitalWrite(trigger_pin, LOW);
-  digitalWrite(center_trig_pin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigger_pin, HIGH);
-  digitalWrite(center_trig_pin, HIGH);
-  delayMicroseconds(5);
-  digitalWrite(trigger_pin, LOW);
-  digitalWrite(center_trig_pin, LOW);
-
-  // The same pin is used to read the signal from the PING))): a HIGH
-  // pulse whose duration is the time (in microseconds) from the sending
-  // of the ping to the reception of its echo off of an object.
-  
-  left = microsecondsToCentimeters(pulseIn(echoL, HIGH));
- // center = microsecondsToCentimeters(pulseIn(echoC, HIGH));
-  right = microsecondsToCentimeters(pulseIn(echoR, HIGH));
-
+  leftdistance();
+  centerdistance();
+  rightdistance();
 //
   Serial.print("LEFT: \t" );
   Serial.print(left, DEC);
@@ -116,8 +143,6 @@ void distance()
   Serial.print("\t Right: \t");
   Serial.println(right,DEC);
 
-  // convert the time into a distance
- // return microsecondsToCentimeters(center);
 }
 
 
