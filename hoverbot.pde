@@ -48,10 +48,11 @@ void setup() {
 
 void loop() {
   //first lets populate all the distance sensors
+
   distance();
   //
   delay(1000);
-  turnRight();
+
 }
 
 
@@ -60,6 +61,11 @@ void loop() {
 /*
 lets slam this baby into high speed forward.
 */
+void cutout() {
+    analogWrite(powerA, 0);
+    digitalWrite(dir1PinA, LOW);
+    digitalWrite(dir2PinA, LOW);
+}
 void fwd_drive() {
     analogWrite(powerA, 255);
     digitalWrite(dir1PinA, LOW);
