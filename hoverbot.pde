@@ -1,3 +1,8 @@
+/*
+  this is my code.. nihaopaul @ gmail o com
+  i will use it to win the race :D
+*/
+
 
 // motor forward/reverse
 int dir1PinA = 13;
@@ -22,7 +27,7 @@ int echoC = 5;
 int echoR = 6;
 
 //store variables
-long left, center, right;
+int l, c, r;
 
 
 void setup() {
@@ -55,19 +60,97 @@ void loop() {
 
 }
 
-void drivelogic() {
+void driveLogic() {
+  /* 
+   check left|center|right sensors to make sure we can go forward, 
+   lets pick an obligatory number for distance, remember we can be polluted with a 0 answer.. 
+   so if it's zero then assume to go forward, 
+   should probably calculate a mean distance based on 3 samples
+  */
+  int min_distance = 20;
+  int emergency_distance = 10;
+  int max_distance = 50;
+  //lets cheat and set the max distance we'll record
+  if (l > max_distance) {
+    l = max_distance;
+  }
+  if (c > max_distance) {
+    c = max_distance;
+  }
+  if (r > max_distance) {
+    r = max_distance;
+  }
+  //some decissions will need to be made
+  if (l > emergency_distance && c > emergency_distance && r > emergency_distance) {
+    if(l > min_distance && c > min_distance && r > min_distance) {
+      //keep on doing what you are doing :)
+    } else {
+      //min distance reached.. we need to work out which way to go.
+      return logic();
+    }
+  } else {
+    //emergency distance reached.. we need to stop and work out which way to go
+    AirBreak();
+    return logic();
+  }
 }
-
+/*
+logic missing:
+  if we've just turn right or left, how do we set it back to straight? 
+  what about % difference between left and right - as this makes sense to me.. 
+  could we simplify our code if we done this?
+  if we need to turn then we work out the percentage 0 50 100 and map this to max turning of our servo..
+  need to swap the motor for a servo.
+*/
+void logic() {
+      if (l>c && c>r) {
+      //  turn left
+        return turnLeft();
+      }
+      if (l<c && c>r) {
+      //  forward
+        return fwdDrive();
+      }
+      if (l<c && c<r) {
+      //  turn right
+        return turnRight();
+      }
+      if (l>c && c<r) {
+      //  (!left or right!) - we'll favour left for this race :-)
+        return turnLeft();
+      }
+      if(l==c && c==r) {
+       // forward
+       return fwdDrive();
+      }
+      if (l==c && c<r) {
+      //  turn right
+        return turnRight();
+      }
+      if (l==c && c>r) {
+      //  turn left
+        return turnLeft();
+      }
+      if (l>c && c==r) {
+      //  turn left
+        return turnLeft();
+      }
+      if (l<c && c==r) {
+      //  turn right
+        return turnRight();
+      }
+}
 
 /*
 lets slam this baby into high speed forward.
 */
-void cutout() {
+void cut() {
     analogWrite(powerA, 0);
     digitalWrite(dir1PinA, LOW);
     digitalWrite(dir2PinA, LOW);
 }
-void fwd_drive() {
+void fwdDrive() {
+    Lift();
     analogWrite(powerA, 255);
     digitalWrite(dir1PinA, LOW);
     digitalWrite(dir2PinA, HIGH);
@@ -75,19 +158,21 @@ void fwd_drive() {
 /*
 reverse? do we really need reverse?..
 */
-void rev_drive() {
+void revDrive() {
     analogWrite(powerA, 255);
     digitalWrite(dir1PinA, HIGH);
     digitalWrite(dir2PinA, LOW);
 }
 /* left/right */
 void turnLeft() {
+    fwdDrive();
     analogWrite(powerB, 255);
     digitalWrite(dir1PinB, LOW);
     digitalWrite(dir2PinB, HIGH);
 }
 
 void turnRight() {
+    fwdDrive();
     analogWrite(powerB, 255);
     digitalWrite(dir1PinB, HIGH);
     digitalWrite(dir2PinB, LOW);
@@ -120,20 +205,20 @@ void leftdistance()
 {
   delay(10);
   ping();
-  left = microsecondsToCentimeters(pulseIn(echoL, HIGH,2000));
+  l = microsecondsToCentimeters(pulseIn(echoL, HIGH,2000));
 
 }
 void centerdistance()
 {
   delay(10);
   ping();
- center = microsecondsToCentimeters(pulseIn(echoC, HIGH,2000));
+  c = microsecondsToCentimeters(pulseIn(echoC, HIGH,2000));
 }
 void rightdistance()
 {
   delay(10);
   ping();
-  right = microsecondsToCentimeters(pulseIn(echoR, HIGH, 2000));
+  r = microsecondsToCentimeters(pulseIn(echoR, HIGH, 2000));
 }
 /* got this from the bug bot by david */
 
@@ -144,11 +229,11 @@ void distance()
   rightdistance();
 //
   Serial.print("LEFT: \t" );
-  Serial.print(left, DEC);
+  Serial.print(l, DEC);
   Serial.print("\t Center: \t");
-  Serial.print(center, DEC);
+  Serial.print(c, DEC);
   Serial.print("\t Right: \t");
-  Serial.println(right,DEC);
+  Serial.println(r,DEC);
 
 }
 

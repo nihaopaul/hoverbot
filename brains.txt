@@ -1,0 +1,19 @@
+l>c c>r
+  turn left
+l<c c>r
+  forward
+l<c c<r
+  turn right
+l>c c<r
+  (!left or right!)
+l=c c=r
+  forward
+l=c c<r
+  turn right
+l=c c>r
+  turn left
+l>c c=r
+  turn left
+l<c c=r
+  turn right
+
