@@ -29,6 +29,8 @@ int echoR = 6;
 //store variables
 int l, c, r;
 
+int pb = 1;
+
 
 void setup() {
   pinMode(dir1PinA, OUTPUT);
@@ -53,9 +55,13 @@ void setup() {
 
 void loop() {
   //first lets populate all the distance sensors
-  distance();
+  //distance();
   
-  driveLogic();
+//  driveLogic();
+
+  pb++;
+  Serial.println(pb,DEC);
+  turnLeft();
   delay(1000);
 
 }
@@ -165,8 +171,8 @@ void revDrive() {
 }
 /* left/right */
 void turnLeft() {
-    fwdDrive();
-    analogWrite(powerB, 255);
+   // fwdDrive();
+    analogWrite(powerB, pb);
     digitalWrite(dir1PinB, LOW);
     digitalWrite(dir2PinB, HIGH);
 }
