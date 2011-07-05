@@ -29,7 +29,10 @@ int echoR = 6;
 //store variables
 int l, c, r;
 
-int pb = 1;
+//
+  int min_distance = 20;
+  int emergency_distance = 10;
+  int max_distance = 50;
 
 
 void setup() {
@@ -55,14 +58,10 @@ void setup() {
 
 void loop() {
   //first lets populate all the distance sensors
-  //distance();
+  distance();
   
-//  driveLogic();
-
-  pb++;
-  Serial.println(pb,DEC);
-  turnLeft();
-  delay(1000);
+  driveLogic();
+  delay(100);
 
 }
 
@@ -73,30 +72,20 @@ void driveLogic() {
    so if it's zero then assume to go forward, 
    should probably calculate a mean distance based on 3 samples
   */
-  int min_distance = 20;
-  int emergency_distance = 10;
-  int max_distance = 50;
-  //lets cheat and set the max distance we'll record
-  if (l > max_distance) {
-    l = max_distance;
-  }
-  if (c > max_distance) {
-    c = max_distance;
-  }
-  if (r > max_distance) {
-    r = max_distance;
-  }
+
+
   //some decissions will need to be made
   if (l > emergency_distance && c > emergency_distance && r > emergency_distance) {
     if(l > min_distance && c > min_distance && r > min_distance) {
       //keep on doing what you are doing :)
+      return logic();
     } else {
       //min distance reached.. we need to work out which way to go.
       return logic();
     }
   } else {
     //emergency distance reached.. we need to stop and work out which way to go
-    AirBreak();
+    //AirBreak(); -- not going to work
     return logic();
   }
 }
@@ -115,7 +104,7 @@ void logic() {
       }
       if (l<c && c>r) {
       //  forward
-        return fwdDrive();
+        return Straight();
       }
       if (l<c && c<r) {
       //  turn right
@@ -127,7 +116,8 @@ void logic() {
       }
       if(l==c && c==r) {
        // forward
-       return fwdDrive();
+       //return fwdDrive();
+       return Straight();
       }
       if (l==c && c<r) {
       //  turn right
@@ -172,7 +162,7 @@ void revDrive() {
 /* left/right */
 void turnLeft() {
    // fwdDrive();
-    analogWrite(powerB, pb);
+    analogWrite(powerB, 255);
     digitalWrite(dir1PinB, LOW);
     digitalWrite(dir2PinB, HIGH);
 }
@@ -184,11 +174,17 @@ void turnRight() {
     digitalWrite(dir2PinB, LOW);
 }
 
-
+void Straight() {
+    fwdDrive();
+    analogWrite(powerB, 0);
+    digitalWrite(dir1PinB, LOW);
+    digitalWrite(dir2PinB, LOW); 
+}
 void Lift() {
     digitalWrite(rpin, LOW);
 }
 void AirBreak() {
+  
     digitalWrite(rpin, HIGH);
 }
 
@@ -233,6 +229,17 @@ void distance()
   leftdistance();
   centerdistance();
   rightdistance();
+//
+  //lets cheat and set the max distance we'll record
+  if (l > max_distance || l == 0) {
+    l = max_distance;
+  }
+  if (c > max_distance || c == 0) {
+    c = max_distance;
+  }
+  if (r > max_distance || r == 0) {
+    r = max_distance;
+  }
 //
   Serial.print("LEFT: \t" );
   Serial.print(l, DEC);
