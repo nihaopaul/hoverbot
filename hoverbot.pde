@@ -48,14 +48,15 @@ void setup() {
 
 void loop() {
   //first lets populate all the distance sensors
-
   distance();
-  //
+  
+  driveLogic();
   delay(1000);
 
 }
 
-
+void drivelogic() {
+}
 
 
 /*
